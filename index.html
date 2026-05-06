@@ -3,132 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUSHI TV MAX - 50 CHAINES</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <title>LUSHI INNOVATION TV</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --main: #ff6600; --bg: #050505; --card: #1a1a1a; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        :root { --primary: #00d2ff; --accent: #e50914; --bg: #050505; }
         
-        .player-box { width: 100%; aspect-ratio: 16/9; background: #000; position: sticky; top: 0; z-index: 100; }
-        video { width: 100%; height: 100%; }
-
-        .ch-info { padding: 10px 15px; background: #111; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
-        #ch-title { font-weight: bold; color: var(--main); }
-
-        .grid-container { flex: 1; overflow-y: auto; padding: 15px; }
-        .category-title { font-size: 14px; color: #888; margin: 15px 0 10px 5px; text-transform: uppercase; letter-spacing: 1px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
         
-        .card { 
-            background: var(--card); border-radius: 10px; padding: 12px 5px; text-align: center; 
-            cursor: pointer; border: 2px solid transparent; transition: 0.2s;
+        /* Ecran de diffusion */
+        .video-container { width: 100%; aspect-ratio: 16/9; background: #000; position: sticky; top: 0; z-index: 100; }
+        video { width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+
+        /* Infos programme */
+        .channel-bar { padding: 15px; background: #111; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: space-between; }
+        .live-badge { background: var(--accent); color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
+
+        .video-info { padding: 20px; }
+        h1 { font-size: 1.2rem; margin: 0 0 5px 0; color: var(--primary); }
+        p { font-size: 0.9rem; color: #888; margin: 0; }
+
+        /* Liste de lecture */
+        .playlist { padding: 0 20px 20px 20px; }
+        .playlist-title { font-size: 14px; color: #555; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        
+        .video-item { 
+            display: flex; align-items: center; gap: 15px; background: #151515; 
+            padding: 12px; border-radius: 10px; margin-bottom: 10px; cursor: pointer;
+            border-left: 4px solid transparent; transition: 0.3s;
         }
-        .card.active { border-color: var(--main); background: #252525; }
-        .card i { font-size: 20px; color: var(--main); margin-bottom: 8px; display: block; }
-        .card span { font-size: 10px; font-weight: bold; display: block; overflow: hidden; text-overflow: ellipsis; }
-
-        input { width: 90%; margin: 10px auto; display: block; padding: 10px; border-radius: 8px; border: none; background: #222; color: white; }
+        .video-item.active { border-left-color: var(--primary); background: #1a1a1a; }
+        .video-item i { font-size: 20px; color: #333; }
+        .video-item.active i { color: var(--primary); }
+        .video-item b { font-size: 14px; display: block; }
+        .video-item span { font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
 
-    <div class="player-box">
-        <video id="video" controls autoplay playsinline></video>
+    <div class="video-container">
+        <video id="tvPlayer" controls autoplay playsinline></video>
     </div>
 
-    <div class="ch-info">
-        <span id="ch-title">Sélectionnez une chaîne</span>
-        <span style="color:red; font-size:10px;">● EN DIRECT</span>
+    <div class="channel-bar">
+        <div id="playing-title">Initialisation...</div>
+        <div class="live-badge">● EN DIRECT</div>
     </div>
 
-    <input type="text" id="find" placeholder="Rechercher une chaîne..." onkeyup="filter()">
+    <div class="video-info">
+        <h1 id="current-h1">Chargement...</h1>
+        <p id="current-desc">Préparation de votre flux d'innovation.</p>
+    </div>
 
-    <div class="grid-container" id="container">
-        </div>
+    <div class="playlist">
+        <div class="playlist-title">Grille des programmes</div>
+        <div id="playlist-list"></div>
+    </div>
 
-<script>
-    const tvData = {
-        "Enfants & Dessins Animés": [
-            { n: "Gulli Africa", u: "https://gulli-africa.amagi.tv/playlist.m3u8" },
-            { n: "Teletoon+ (Clip)", u: "https://p.nomadhls.com/hls/live/canalplus_teletoon/index.m3u8" },
-            { n: "Nickelodeon FR", u: "https://viacom-nickelodeon-fr.samsung.wurl.tv/playlist.m3u8" },
-            { n: "Disney Channel (Kids)", u: "https://disney-channel-fr.amagi.tv/playlist.m3u8" },
-            { n: "Cartoon Network Live", u: "https://cartoon-network-fr.amagi.tv/playlist.m3u8" },
-            { n: "Boing TV", u: "https://boing-fr.amagi.tv/playlist.m3u8" },
-            { n: "TiJi Live", u: "https://tiji-fr.amagi.tv/playlist.m3u8" }
-        ],
-        "Divertissement & Films": [
-            { n: "Z Magic FR", u: "https://z-magic-fr.amagi.tv/playlist.m3u8" },
-            { n: "Novela TV", u: "https://novela-tv.amagi.tv/playlist.m3u8" },
-            { n: "Fashion TV", u: "https://fash1043.cloudycdn.be/f1043/index.m3u8" },
-            { n: "Trace Urban", u: "https://trace-urban-fr-samsung.amagi.tv/playlist.m3u8" },
-            { n: "Action Movies", u: "https://rakuten-actionmovies-1-fr.samsung.wurl.tv/playlist.m3u8" }
-        ],
-        "Information & Afrique": [
-            { n: "France 24", u: "https://static.france24.com/live/F24_FR_HI_HLS/live_tv.m3u8" },
-            { n: "Africa 24", u: "https://live.africa24tv.com/africa24/smil:africa24.smil/playlist.m3u8" },
-            { n: "TV5 Monde Afrique", u: "https://ott.tv5monde.com/content/vtv/tv5monde_afrique/index.m3u8" },
-            { n: "Africanews", u: "https://africanews-africanews-french-p6-vpod.pdt.ovh/200/index.m3u8" }
-        ],
-        "Sport": [
-            { n: "FIFA+ Live", u: "https://fifaplus-samsung-fr.amagi.tv/playlist.m3u8" },
-            { n: "L'Equipe Live", u: "https://lequipe-lequipe-1-fr.samsung.wurl.tv/playlist.m3u8" },
-            { n: "Red Bull TV", u: "https://rbmn-live.akamaized.net/hls/live/590964/flp/master.m3u8" }
-        ]
-    };
+    <script>
+        // CONFIGURATION DES VIDÉOS (Utilisation de Cloudinary)
+        const playlist = [
+            {
+                title: "Concours Lépine : Inventeurs",
+                desc: "Inspirations et inventions françaises célèbres.",
+                url: "https://res.cloudinary.com/dsnf7punm/video/upload/q_auto,f_auto/v1778110506/Concours_L%C3%A9pine_Les_inventeurs_fran%C3%A7ais_odmqrf.mp4"
+            },
+            {
+                title: "Big Buck Bunny (Animation)",
+                desc: "Vidéo de test pour vérifier l'enchaînement.",
+                url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+            }
+        ];
 
-    const video = document.getElementById('video');
-    const titleDisp = document.getElementById('ch-title');
-    const container = document.getElementById('container');
-    let hls = new Hls();
+        const player = document.getElementById('tvPlayer');
+        const listUI = document.getElementById('playlist-list');
+        let currentIndex = 0;
 
-    function setup() {
-        for (const [cat, channels] of Object.entries(tvData)) {
-            const catTitle = document.createElement('div');
-            catTitle.className = 'category-title';
-            catTitle.innerText = cat;
-            container.appendChild(catTitle);
-
-            const grid = document.createElement('div');
-            grid.className = 'grid';
+        // Fonction pour lancer une vidéo
+        function playTrack(index) {
+            currentIndex = index;
+            const track = playlist[index];
             
-            channels.forEach(ch => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `<i class="fas fa-play-circle"></i><span>${ch.n}</span>`;
-                card.onclick = () => play(ch.u, ch.n, card);
-                grid.appendChild(card);
+            player.src = track.url;
+            document.getElementById('playing-title').innerText = "DIFFUSION : " + track.title;
+            document.getElementById('current-h1').innerText = track.title;
+            document.getElementById('current-desc').innerText = track.desc;
+            
+            player.play();
+            renderPlaylist();
+        }
+
+        // AUTOMATE : Passer à la vidéo suivante quand celle-ci est finie
+        player.onended = function() {
+            currentIndex = (currentIndex + 1) % playlist.length;
+            playTrack(currentIndex);
+        };
+
+        // Mise à jour visuelle de la liste
+        function renderPlaylist() {
+            listUI.innerHTML = "";
+            playlist.forEach((track, index) => {
+                const item = document.createElement('div');
+                item.className = `video-item ${index === currentIndex ? 'active' : ''}`;
+                item.innerHTML = `
+                    <i class="fas ${index === currentIndex ? 'fa-play-circle' : 'fa-film'}"></i>
+                    <div>
+                        <b>${track.title}</b>
+                        <span>${index === currentIndex ? 'En cours...' : 'À suivre'}</span>
+                    </div>
+                `;
+                item.onclick = () => playTrack(index);
+                listUI.appendChild(item);
             });
-            container.appendChild(grid);
         }
-    }
 
-    function play(url, name, el) {
-        document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-        titleDisp.innerText = name;
+        // Lancement au démarrage
+        window.onload = () => playTrack(0);
 
-        if (Hls.isSupported()) {
-            hls.destroy();
-            hls = new Hls();
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else {
-            video.src = url;
-            video.play();
-        }
-    }
-
-    function filter() {
-        let val = document.getElementById('find').value.toLowerCase();
-        document.querySelectorAll('.card').forEach(c => {
-            c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none";
-        });
-    }
-
-    window.onload = setup;
-</script>
+    </script>
 </body>
 </html>
