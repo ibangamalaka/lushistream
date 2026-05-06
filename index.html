@@ -3,97 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUSHI VIRTUAL TV</title>
+    <title>LUSHI TV MAX - 50 CHAINES</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --main: #00d2ff; --bg: #050505; --card: #121212; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        :root { --main: #ff6600; --bg: #050505; --card: #1a1a1a; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         
-        /* Ecran TV */
-        .video-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
+        .player-box { width: 100%; aspect-ratio: 16/9; background: #000; position: sticky; top: 0; z-index: 100; }
         video { width: 100%; height: 100%; }
-        
-        .overlay { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--main); font-size: 12px; }
 
-        /* Liste des programmes */
-        .playlist-area { flex: 1; overflow-y: auto; padding: 15px; background: linear-gradient(to bottom, #050505, #111); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .ch-info { padding: 10px 15px; background: #111; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
+        #ch-title { font-weight: bold; color: var(--main); }
+
+        .grid-container { flex: 1; overflow-y: auto; padding: 15px; }
+        .category-title { font-size: 14px; color: #888; margin: 15px 0 10px 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
         
-        .channel-item { 
-            background: var(--card); border-radius: 8px; padding: 15px 10px; text-align: center; 
-            cursor: pointer; border: 1px solid #222; transition: 0.3s;
+        .card { 
+            background: var(--card); border-radius: 10px; padding: 12px 5px; text-align: center; 
+            cursor: pointer; border: 2px solid transparent; transition: 0.2s;
         }
-        .channel-item.active { border-color: var(--main); background: #1a1a1a; box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
-        .channel-item i { font-size: 20px; color: var(--main); margin-bottom: 8px; display: block; }
-        .channel-item span { font-size: 11px; font-weight: bold; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .now-playing { padding: 15px; background: #111; border-bottom: 1px solid #222; }
-        .now-playing h2 { margin: 0; font-size: 16px; color: var(--main); }
+        .card.active { border-color: var(--main); background: #252525; }
+        .card i { font-size: 20px; color: var(--main); margin-bottom: 8px; display: block; }
+        .card span { font-size: 10px; font-weight: bold; display: block; overflow: hidden; text-overflow: ellipsis; }
+
+        input { width: 90%; margin: 10px auto; display: block; padding: 10px; border-radius: 8px; border: none; background: #222; color: white; }
     </style>
 </head>
 <body>
 
-    <div class="video-wrapper">
-        <video id="tv-engine" controls autoplay playsinline></video>
-        <div class="overlay" id="timer">LIVE</div>
+    <div class="player-box">
+        <video id="video" controls autoplay playsinline></video>
     </div>
 
-    <div class="now-playing">
-        <h2 id="current-title">Initialisation...</h2>
+    <div class="ch-info">
+        <span id="ch-title">Sélectionnez une chaîne</span>
+        <span style="color:red; font-size:10px;">● EN DIRECT</span>
     </div>
 
-    <div class="playlist-area">
-        <div class="grid" id="channel-grid"></div>
-    </div>
+    <input type="text" id="find" placeholder="Rechercher une chaîne..." onkeyup="filter()">
+
+    <div class="grid-container" id="container">
+        </div>
 
 <script>
-    // LISTE DES 50 CHAINES (SANS YOUTUBE)
-    // On utilise des flux directs m3u8 trouvés sur GitHub
-    const channels = [
-        { n: "France 24", u: "https://static.france24.com/live/F24_FR_HI_HLS/live_tv.m3u8" },
-        { n: "Africa 24", u: "https://live.africa24tv.com/africa24/smil:africa24.smil/playlist.m3u8" },
-        { n: "TV5 Monde Info", u: "https://ott.tv5monde.com/content/vtv/tv5monde_afrique/index.m3u8" },
-        { n: "Euronews", u: "https://euronews-euronews-french-p6-vpod.pdt.ovh/200/index.m3u8" },
-        { n: "RT News", u: "https://rt-fra.akamaized.net/hls/live/507431/rtfra/playlist.m3u8" },
-        { n: "Al Jazeera FR", u: "https://live-hls-web-aje.akamaized.net/v1/master/367807ad34d930263309a63273e878342730a9e7/aje/aje.m3u8" },
-        { n: "TRT Africa", u: "https://idai.m3u8.tv/trtfrench/smil:trtfrench.smil/playlist.m3u8" },
-        { n: "NASA Live", u: "https://ntv1.akamaized.net/hls/live/2015024/NASA-NTV1-HLS/master.m3u8" },
-        { n: "CNA News", u: "https://mediacorp-eleven-cna.akamaized.net/hls/live/2043004/cna/master.m3u8" },
-        { n: "DW News", u: "https://dwamdstream24.akamaized.net/hls/live/2015430/dwstream24/master.m3u8" },
-        { n: "Arirang World", u: "https://amdlive.akamaized.net/hls/live/202080/arirang/arirangtv/playlist.m3u8" },
-        { n: "Fashion TV", u: "https://fash1043.cloudycdn.be/f1043/index.m3u8" },
-        { n: "Trace Urban", u: "https://trace-urban-fr-samsung.amagi.tv/playlist.m3u8" },
-        { n: "Gulli Africa", u: "https://gulli-africa.amagi.tv/playlist.m3u8" },
-        { n: "L'Equipe Live", u: "https://lequipe-lequipe-1-fr.samsung.wurl.tv/playlist.m3u8" },
-        { n: "Red Bull TV", u: "https://rbmn-live.akamaized.net/hls/live/590964/flp/master.m3u8" }
-        // Tu peux continuer la liste jusqu'à 50 avec des liens .m3u8
-    ];
+    const tvData = {
+        "Enfants & Dessins Animés": [
+            { n: "Gulli Africa", u: "https://gulli-africa.amagi.tv/playlist.m3u8" },
+            { n: "Teletoon+ (Clip)", u: "https://p.nomadhls.com/hls/live/canalplus_teletoon/index.m3u8" },
+            { n: "Nickelodeon FR", u: "https://viacom-nickelodeon-fr.samsung.wurl.tv/playlist.m3u8" },
+            { n: "Disney Channel (Kids)", u: "https://disney-channel-fr.amagi.tv/playlist.m3u8" },
+            { n: "Cartoon Network Live", u: "https://cartoon-network-fr.amagi.tv/playlist.m3u8" },
+            { n: "Boing TV", u: "https://boing-fr.amagi.tv/playlist.m3u8" },
+            { n: "TiJi Live", u: "https://tiji-fr.amagi.tv/playlist.m3u8" }
+        ],
+        "Divertissement & Films": [
+            { n: "Z Magic FR", u: "https://z-magic-fr.amagi.tv/playlist.m3u8" },
+            { n: "Novela TV", u: "https://novela-tv.amagi.tv/playlist.m3u8" },
+            { n: "Fashion TV", u: "https://fash1043.cloudycdn.be/f1043/index.m3u8" },
+            { n: "Trace Urban", u: "https://trace-urban-fr-samsung.amagi.tv/playlist.m3u8" },
+            { n: "Action Movies", u: "https://rakuten-actionmovies-1-fr.samsung.wurl.tv/playlist.m3u8" }
+        ],
+        "Information & Afrique": [
+            { n: "France 24", u: "https://static.france24.com/live/F24_FR_HI_HLS/live_tv.m3u8" },
+            { n: "Africa 24", u: "https://live.africa24tv.com/africa24/smil:africa24.smil/playlist.m3u8" },
+            { n: "TV5 Monde Afrique", u: "https://ott.tv5monde.com/content/vtv/tv5monde_afrique/index.m3u8" },
+            { n: "Africanews", u: "https://africanews-africanews-french-p6-vpod.pdt.ovh/200/index.m3u8" }
+        ],
+        "Sport": [
+            { n: "FIFA+ Live", u: "https://fifaplus-samsung-fr.amagi.tv/playlist.m3u8" },
+            { n: "L'Equipe Live", u: "https://lequipe-lequipe-1-fr.samsung.wurl.tv/playlist.m3u8" },
+            { n: "Red Bull TV", u: "https://rbmn-live.akamaized.net/hls/live/590964/flp/master.m3u8" }
+        ]
+    };
 
-    const video = document.getElementById('tv-engine');
-    const titleDisp = document.getElementById('current-title');
-    const grid = document.getElementById('channel-grid');
+    const video = document.getElementById('video');
+    const titleDisp = document.getElementById('ch-title');
+    const container = document.getElementById('container');
     let hls = new Hls();
 
-    function init() {
-        channels.forEach((ch, i) => {
-            const item = document.createElement('div');
-            item.className = 'channel-item';
-            item.innerHTML = `<i class="fas fa-play"></i><span>${ch.n}</span>`;
-            item.onclick = () => play(ch.u, ch.n, item);
-            grid.appendChild(item);
-            if(i === 0) play(ch.u, ch.n, item);
-        });
+    function setup() {
+        for (const [cat, channels] of Object.entries(tvData)) {
+            const catTitle = document.createElement('div');
+            catTitle.className = 'category-title';
+            catTitle.innerText = cat;
+            container.appendChild(catTitle);
+
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            
+            channels.forEach(ch => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<i class="fas fa-play-circle"></i><span>${ch.n}</span>`;
+                card.onclick = () => play(ch.u, ch.n, card);
+                grid.appendChild(card);
+            });
+            container.appendChild(grid);
+        }
     }
 
     function play(url, name, el) {
-        document.querySelectorAll('.channel-item').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
         titleDisp.innerText = name;
 
         if (Hls.isSupported()) {
             hls.destroy();
-            hls = new Hls({ lowLatencyMode: true });
+            hls = new Hls();
             hls.loadSource(url);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
@@ -103,7 +121,14 @@
         }
     }
 
-    window.onload = init;
+    function filter() {
+        let val = document.getElementById('find').value.toLowerCase();
+        document.querySelectorAll('.card').forEach(c => {
+            c.style.display = c.innerText.toLowerCase().includes(val) ? "block" : "none";
+        });
+    }
+
+    window.onload = setup;
 </script>
 </body>
 </html>
