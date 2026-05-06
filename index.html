@@ -3,168 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUSHI RADIO PRO - 50 STATIONS</title>
+    <title>LUSHI RADIO 50</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --bg: #0a0e14;
-            --card: #161d27;
-            --accent: #00d2ff;
-            --text: #ffffff;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0; padding: 0;
-            display: flex; flex-direction: column; height: 100vh;
-        }
-
-        /* --- LECTEUR AUDIO FIXE (HAUT) --- */
-        .audio-player {
-            background: linear-gradient(145deg, #1e2733, #161d27);
-            padding: 30px 20px;
-            text-align: center;
-            border-bottom: 2px solid var(--accent);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-
-        .visualizer {
-            font-size: 50px; color: var(--accent);
-            margin-bottom: 10px;
-            animation: pulse 1.5s infinite ease-in-out;
-            display: none; /* Apparaît quand on joue */
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.5; }
-        }
-
-        #current-station { font-size: 1.2rem; font-weight: bold; margin: 10px 0; color: var(--accent); }
-        #status { font-size: 0.8rem; color: #888; text-transform: uppercase; }
-
-        /* --- GRILLE DES 50 RADIOS --- */
-        .stations-container {
-            flex: 1; overflow-y: auto; padding: 20px;
-            background: #0d121a;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 15px;
-        }
-
-        .radio-card {
-            background: var(--card);
-            border-radius: 15px;
-            padding: 15px 10px;
-            text-align: center;
-            cursor: pointer;
-            border: 1px solid #252d3a;
-            transition: 0.3s;
-        }
-
-        .radio-card:active { transform: scale(0.9); }
-        .radio-card.active { border-color: var(--accent); background: #1c2635; box-shadow: 0 0 10px var(--accent); }
+        :root { --bg: #050a10; --card: #121821; --accent: #00d2ff; --red: #ff4b2b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; }
         
-        .radio-card i { font-size: 28px; color: #505d6e; margin-bottom: 10px; display: block; }
-        .radio-card.active i { color: var(--accent); }
-        
-        .radio-card span { font-size: 11px; font-weight: 600; display: block; }
+        /* Lecteur Fixe */
+        .header-player { background: var(--card); padding: 25px 15px; text-align: center; border-bottom: 3px solid var(--accent); }
+        .logo-lushi { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
+        #status { font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 10px; }
+        #current-name { font-size: 18px; font-weight: bold; min-height: 24px; }
+        audio { width: 100%; margin-top: 15px; height: 35px; }
 
-        /* Barre de recherche */
-        .search-box {
-            padding: 10px 20px; background: #161d27;
-        }
-        input {
-            width: 100%; padding: 12px; border-radius: 25px; border: none;
-            background: #0a0e14; color: white; outline: none; box-sizing: border-box;
-        }
+        /* Recherche */
+        .search-area { padding: 10px; background: #0a111a; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #1a2433; color: white; outline: none; box-sizing: border-box; }
+
+        /* Grille des 50 Radios */
+        .scroll-area { flex: 1; overflow-y: auto; padding: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
+        .radio-item { background: var(--card); border-radius: 12px; padding: 15px 5px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+        .radio-item:active { transform: scale(0.95); }
+        .radio-item.active { border-color: var(--accent); background: #1a2433; }
+        .radio-item i { font-size: 25px; color: #444; margin-bottom: 8px; display: block; }
+        .radio-item.active i { color: var(--accent); }
+        .radio-item span { font-size: 10px; font-weight: 600; display: block; }
     </style>
 </head>
 <body>
 
-    <div class="audio-player">
-        <div id="viz" class="visualizer"><i class="fas fa-wave-square"></i></div>
-        <div id="status">Sélectionnez une station</div>
-        <div id="current-station">LUSHI RADIO</div>
-        <audio id="player" controls style="width: 100%; margin-top: 15px;"></audio>
-    </div>
+<div class="header-player">
+    <div class="logo-lushi">LUSHI RADIO PRO</div>
+    <div id="status">Prêt à diffuser</div>
+    <div id="current-name">Sélectionnez une station</div>
+    <audio id="audioPlayer" controls></audio>
+</div>
 
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Rechercher une radio..." onkeyup="filterRadios()">
-    </div>
+<div class="search-area">
+    <input type="text" id="q" placeholder="Chercher parmi les 50 radios..." onkeyup="search()">
+</div>
 
-    <div class="stations-container">
-        <div class="grid" id="radioGrid">
-            </div>
-    </div>
+<div class="scroll-area">
+    <div class="grid" id="grid"></div>
+</div>
 
 <script>
-    // LISTE DES RADIOS (Voici les premières, tu peux copier-coller pour arriver à 50)
-    const radioList = [
-        { name: "RFI Afrique", url: "https://rfi-afrique-64k.akacast.akamaistream.net/7/463/144103/v1/rc.akacast.akamaistream.net/rfi_afrique_64k" },
-        { name: "BBC Afrique", url: "https://bbc-bbcws-afrique.akacast.akamaistream.net/7/24/144101/v1/rc.akacast.akamaistream.net/bbc_bbcws_afrique" },
-        { name: "Radio Okapi", url: "https://stream.okapifm.net/okapifm.mp3" },
-        { name: "Africa No 1", url: "http://stats.vps-private.net:8140/stream" },
-        { name: "VOA Afrique", url: "https://voa-28.akacast.akamaistream.net/7/751/437731/v1/rc.akacast.akamaistream.net/voa-28" },
-        { name: "TV5 Afrique", url: "https://radio.tv5monde.com/tv5mondeafrique.mp3" },
-        { name: "RTL France", url: "http://icecast.rtl.fr/rtl-1-44-128?listen=webkey" },
-        { name: "Europe 1", url: "http://stream.europe1.fr/europe1.mp3" },
-        { name: "France Info", url: "https://stream.radiofrance.fr/franceinfo/franceinfo.m3u8" },
-        { name: "Radio Lushi", url: "https://stream.radio.co/s6f1b3f9d5/listen" },
-        // Ajoute tes autres radios ici sur le même modèle jusqu'à 50
-    ];
+const radios = [
+    // AFRIQUE (15)
+    {n: "RFI Afrique", u: "https://rfi-afrique-64k.akacast.akamaistream.net/7/463/144103/v1/rc.akacast.akamaistream.net/rfi_afrique_64k"},
+    {n: "BBC Afrique", u: "https://bbc-bbcws-afrique.akacast.akamaistream.net/7/24/144101/v1/rc.akacast.akamaistream.net/bbc_bbcws_afrique"},
+    {n: "Radio Okapi (RDC)", u: "https://stream.okapifm.net/okapifm.mp3"},
+    {n: "Africa No 1", u: "http://stats.vps-private.net:8140/stream"},
+    {n: "VOA Afrique", u: "https://voa-28.akacast.akamaistream.net/7/751/437731/v1/rc.akacast.akamaistream.net/voa-28"},
+    {n: "TV5 Afrique", u: "https://radio.tv5monde.com/tv5mondeafrique.mp3"},
+    {n: "Radio Senego", u: "http://senego.com:8000/stream"},
+    {n: "Radio Maisha", u: "http://standardmedia.co.ke:8000/maisha.mp3"},
+    {n: "African Hit", u: "http://streaming.radionomy.com/African-Hit"},
+    {n: "Radio Algeria", u: "http://chaine1.coraline.hosting.algerietelecom.dz:8000/stream"},
+    {n: "Gabon Musique", u: "http://rtg.ice.infomaniak.ch/rtg-64.mp3"},
+    {n: "Radio 2M (Maroc)", u: "http://radios.itwork.ma/radio2m"},
+    {n: "Maliweb", u: "http://maliweb.org:8000/stream"},
+    {n: "Bénin Couleur", u: "http://radio.benincouleurs.com:8000/stream"},
+    {n: "Hit Radio", u: "https://hitradio-maroc.ice.infomaniak.ch/hitradio-maroc-128.mp3"},
+    
+    // INTERNATIONAL (15)
+    {n: "RTL France", u: "http://icecast.rtl.fr/rtl-1-44-128?listen=webkey"},
+    {n: "Europe 1", u: "http://stream.europe1.fr/europe1.mp3"},
+    {n: "France Info", u: "http://direct.franceinfo.fr/live/franceinfo-midfi.mp3"},
+    {n: "France Inter", u: "http://direct.franceinter.fr/live/franceinter-midfi.mp3"},
+    {n: "Skyrock", u: "http://www.skyrock.fm/stream.php/tunin_128k.mp3"},
+    {n: "NRJ France", u: "http://cdn.nrjaudio.fm/adwapi/php/wm/get.php?id=1"},
+    {n: "Radio Monaco", u: "http://radiomonaco.ice.infomaniak.ch/radiomonaco-128.mp3"},
+    {n: "CNN Radio", u: "https://audiocooking.shoutca.st/cnn"},
+    {n: "Capital FM (UK)", u: "http://ice-the.musicradio.com/CapitalMP3"},
+    {n: "Jazz Radio", u: "http://jazzradio.ice.infomaniak.ch/jazzradio-high.mp3"},
+    {n: "Nostalgie", u: "http://cdn.nrjaudio.fm/adwapi/php/wm/get.php?id=11"},
+    {n: "Fun Radio", u: "http://icecast.rtl2.fr/fun-1-44-128?listen=webkey"},
+    {n: "Classic FM", u: "http://ice-the.musicradio.com/ClassicFMMP3"},
+    {n: "Radio Suisse Romande", u: "http://stream.srg-ssr.ch/m/la-1ere/mp3_128"},
+    {n: "Vatican Radio", u: "http://icecast.vaticanradio.va/vaticanradio.mp3"},
 
-    const player = document.getElementById('player');
-    const statusText = document.getElementById('status');
-    const stationText = document.getElementById('current-station');
-    const viz = document.getElementById('viz');
-    const grid = document.getElementById('radioGrid');
+    // MUSIQUE & RELIGION & NEWS (20)
+    {n: "Deep House", u: "http://strm112.1.fm/deephouse_mobile_mp3"},
+    {n: "Chillout", u: "http://strm112.1.fm/chilloutlounge_mobile_mp3"},
+    {n: "Lounge FM", u: "http://off.loungefm.com.ua/loungefm128"},
+    {n: "Blues Radio", u: "http://strm112.1.fm/blues_mobile_mp3"},
+    {n: "70s Classics", u: "http://strm112.1.fm/70s_mobile_mp3"},
+    {n: "80s Hits", u: "http://strm112.1.fm/80s_mobile_mp3"},
+    {n: "90s Hits", u: "http://strm112.1.fm/90s_mobile_mp3"},
+    {n: "Country FM", u: "http://strm112.1.fm/country_mobile_mp3"},
+    {n: "Salsa Radio", u: "http://strm112.1.fm/salsa_mobile_mp3"},
+    {n: "Reggae One", u: "http://strm112.1.fm/reggae_mobile_mp3"},
+    {n: "Radio Maria", u: "http://stream.radiomaria.it/afrique/congo_kinshasa.mp3"},
+    {n: "Islam Radio", u: "http://radio.islam.org:8000/stream"},
+    {n: "Gospel Radio", u: "http://streaming.radionomy.com/Gospel-Radio"},
+    {n: "Zen Radio", u: "http://streaming.radionomy.com/ZenRadio"},
+    {n: "BBC World Service", u: "http://bbcwssc.ic.llnwd.net/stream/bbcwssc_mp1_ws-einws"},
+    {n: "Radio Meuh", u: "http://radiomeuh.ice.infomaniak.ch/radiomeuh-128.mp3"},
+    {n: "FIP Radio", u: "http://direct.fipradio.fr/live/fip-midfi.mp3"},
+    {n: "Radio FG", u: "http://radiofg.impek.com/fg"},
+    {n: "Latina", u: "http://broadcast.infomaniak.ch/latina-high.mp3"},
+    {n: "Cherie FM", u: "http://cdn.nrjaudio.fm/adwapi/php/wm/get.php?id=3"}
+];
 
-    function loadRadios() {
-        grid.innerHTML = "";
-        radioList.forEach((radio, index) => {
-            const card = document.createElement('div');
-            card.className = 'radio-card';
-            card.innerHTML = `<i class="fas fa-radio"></i><span>${radio.name}</span>`;
-            card.onclick = () => playRadio(radio.url, radio.name, card);
-            grid.appendChild(card);
-        });
-    }
+const grid = document.getElementById('grid');
+const player = document.getElementById('audioPlayer');
+const nameDisp = document.getElementById('current-name');
+const statusDisp = document.getElementById('status');
 
-    function playRadio(url, name, card) {
-        // UI
-        document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        stationText.innerText = name;
-        statusText.innerText = "Connexion...";
-        viz.style.display = "block";
+function load() {
+    grid.innerHTML = "";
+    radios.forEach((r, i) => {
+        const d = document.createElement('div');
+        d.className = 'radio-item';
+        d.innerHTML = `<i class="fas fa-broadcast-tower"></i><span>${r.n}</span>`;
+        d.onclick = () => play(r.u, r.n, d);
+        grid.appendChild(d);
+    });
+}
 
-        // Logic
-        player.src = url;
-        player.play().then(() => {
-            statusText.innerText = "En direct";
-        }).catch(e => {
-            statusText.innerText = "Erreur de flux";
-            viz.style.display = "none";
-        });
-    }
+function play(url, name, el) {
+    document.querySelectorAll('.radio-item').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    nameDisp.innerText = name;
+    statusDisp.innerText = "Chargement...";
+    player.src = url;
+    player.play().then(() => statusDisp.innerText = "En direct").catch(() => statusDisp.innerText = "Erreur de flux");
+}
 
-    function filterRadios() {
-        let input = document.getElementById('searchInput').value.toLowerCase();
-        let cards = document.getElementsByClassName('radio-card');
-        for (let card of cards) {
-            let name = card.getElementsByTagName('span')[0].innerText.toLowerCase();
-            card.style.display = name.includes(input) ? "block" : "none";
-        }
-    }
+function search() {
+    const val = document.getElementById('q').value.toLowerCase();
+    document.querySelectorAll('.radio-item').forEach(card => {
+        card.style.display = card.innerText.toLowerCase().includes(val) ? "block" : "none";
+    });
+}
 
-    window.onload = loadRadios;
+window.onload = load;
 </script>
 </body>
 </html>
