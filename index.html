@@ -3,40 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUSHI INNOVATION TV</title>
+    <title>LUSHI TECH TV - INNOVATION</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #00d2ff; --accent: #e50914; --bg: #050505; }
-        
         body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
         
-        /* Ecran de diffusion */
+        /* Lecteur Vidéo Principal */
         .video-container { width: 100%; aspect-ratio: 16/9; background: #000; position: sticky; top: 0; z-index: 100; }
         video { width: 100%; height: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
 
-        /* Infos programme */
-        .channel-bar { padding: 15px; background: #111; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: space-between; }
-        .live-badge { background: var(--accent); color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 12px; animation: blink 1.5s infinite; }
+        /* Infos de la Chaîne */
+        .channel-bar { padding: 12px 15px; background: #111; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: space-between; }
+        .live-badge { background: var(--accent); color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; animation: blink 1.5s infinite; }
         @keyframes blink { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
 
         .video-info { padding: 20px; }
         h1 { font-size: 1.2rem; margin: 0 0 5px 0; color: var(--primary); }
         p { font-size: 0.9rem; color: #888; margin: 0; }
 
-        /* Liste de lecture */
+        /* Grille de Programmation */
         .playlist { padding: 0 20px 20px 20px; }
-        .playlist-title { font-size: 14px; color: #555; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .playlist-title { font-size: 13px; color: #555; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 5px; }
         
         .video-item { 
-            display: flex; align-items: center; gap: 15px; background: #151515; 
+            display: flex; align-items: center; gap: 15px; background: #121212; 
             padding: 12px; border-radius: 10px; margin-bottom: 10px; cursor: pointer;
             border-left: 4px solid transparent; transition: 0.3s;
         }
         .video-item.active { border-left-color: var(--primary); background: #1a1a1a; }
-        .video-item i { font-size: 20px; color: #333; }
+        .video-item i { font-size: 18px; color: #333; }
         .video-item.active i { color: var(--primary); }
-        .video-item b { font-size: 14px; display: block; }
-        .video-item span { font-size: 12px; color: #666; }
+        .video-item b { font-size: 14px; display: block; margin-bottom: 2px; }
+        .video-item span { font-size: 11px; color: #666; }
+
+        /* Bouton Partager WhatsApp */
+        .share-btn { display: inline-block; background: #25D366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -46,32 +48,35 @@
     </div>
 
     <div class="channel-bar">
-        <div id="playing-title">Initialisation...</div>
-        <div class="live-badge">● EN DIRECT</div>
+        <div id="playing-status" style="font-size: 13px; font-weight: bold;">LUSHI TECH TV</div>
+        <div class="live-badge">● ANTENNE DIRECT</div>
     </div>
 
     <div class="video-info">
-        <h1 id="current-h1">Chargement...</h1>
-        <p id="current-desc">Préparation de votre flux d'innovation.</p>
+        <h1 id="current-title">Chargement...</h1>
+        <p id="current-desc">Préparation du flux vidéo.</p>
+        <a id="wa-share" href="#" target="_blank" class="share-btn">
+            <i class="fab fa-whatsapp"></i> Partager cette émission
+        </a>
     </div>
 
     <div class="playlist">
-        <div class="playlist-title">Grille des programmes</div>
+        <div class="playlist-title">À suivre sur votre chaîne</div>
         <div id="playlist-list"></div>
     </div>
 
     <script>
-        // CONFIGURATION DES VIDÉOS (Utilisation de Cloudinary)
+        // CONFIGURATION DE TES VIDÉOS CLOUDINARY
         const playlist = [
             {
-                title: "Concours Lépine : Inventeurs",
-                desc: "Inspirations et inventions françaises célèbres.",
+                title: "Concours Lépine : Les Inventeurs",
+                desc: "Découvrez les inventions françaises qui ont marqué l'histoire.",
                 url: "https://res.cloudinary.com/dsnf7punm/video/upload/q_auto,f_auto/v1778110506/Concours_L%C3%A9pine_Les_inventeurs_fran%C3%A7ais_odmqrf.mp4"
             },
             {
-                title: "Big Buck Bunny (Animation)",
-                desc: "Vidéo de test pour vérifier l'enchaînement.",
-                url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                title: "15 Technologies du Futur",
+                desc: "Les innovations qui vont bientôt transformer notre monde.",
+                url: "https://res.cloudinary.com/dsnf7punm/video/upload/q_auto,f_auto/v1778110359/15_Technologies_Qui_vont_Bient%C3%B4t_changer_le_MONDE_ju11u1.mp4"
             }
         ];
 
@@ -79,27 +84,28 @@
         const listUI = document.getElementById('playlist-list');
         let currentIndex = 0;
 
-        // Fonction pour lancer une vidéo
         function playTrack(index) {
             currentIndex = index;
             const track = playlist[index];
             
             player.src = track.url;
-            document.getElementById('playing-title').innerText = "DIFFUSION : " + track.title;
-            document.getElementById('current-h1').innerText = track.title;
+            document.getElementById('current-title').innerText = track.title;
             document.getElementById('current-desc').innerText = track.desc;
+            
+            // Mise à jour du bouton WhatsApp avec le titre de la vidéo
+            const shareMsg = encodeURIComponent("Je regarde '" + track.title + "' sur Lushi Tech TV ! Regarde ici : " + window.location.href);
+            document.getElementById('wa-share').href = "https://api.whatsapp.com/send?text=" + shareMsg;
             
             player.play();
             renderPlaylist();
         }
 
-        // AUTOMATE : Passer à la vidéo suivante quand celle-ci est finie
+        // L'AUTOMATE : Passe à la vidéo suivante à la fin
         player.onended = function() {
             currentIndex = (currentIndex + 1) % playlist.length;
             playTrack(currentIndex);
         };
 
-        // Mise à jour visuelle de la liste
         function renderPlaylist() {
             listUI.innerHTML = "";
             playlist.forEach((track, index) => {
@@ -109,7 +115,7 @@
                     <i class="fas ${index === currentIndex ? 'fa-play-circle' : 'fa-film'}"></i>
                     <div>
                         <b>${track.title}</b>
-                        <span>${index === currentIndex ? 'En cours...' : 'À suivre'}</span>
+                        <span>${index === currentIndex ? 'EN DIFFUSION' : 'À SUIVRE'}</span>
                     </div>
                 `;
                 item.onclick = () => playTrack(index);
@@ -117,9 +123,7 @@
             });
         }
 
-        // Lancement au démarrage
         window.onload = () => playTrack(0);
-
     </script>
 </body>
 </html>
