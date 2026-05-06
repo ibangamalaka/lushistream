@@ -3,313 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUSHI STREAM - TV & RADIO</title>
-    
+    <title>LUSHI STREAM PRO</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* --- DESIGN GLOBAL (DARK MODE) --- */
         :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --primary-color: #58a6ff; /* Bleu moderne */
-            --accent-color: #2ea043;  /* Vert succès */
-            --text-main: #c9d1d9;
-            --text-sub: #8b949e;
+            --main-red: #e50914;
+            --bg-dark: #0f0f0f;
+            --card-bg: #1f1f1f;
+            --text-color: #ffffff;
+            --accent-blue: #00d2ff;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
         }
 
-        /* --- EN-TÊTE --- */
+        /* --- HEADER PRO --- */
         header {
-            background-color: var(--card-bg);
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #30363d;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 20px;
-            color: var(--primary-color);
-            letter-spacing: 1px;
-        }
-
-        /* --- CONTENEUR PRINCIPAL --- */
-        .container {
-            flex: 1;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-width: 800px;
-            margin: 0 auto;
+            position: fixed;
+            top: 0; width: 100%; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .logo {
+            font-size: 24px; font-weight: bold; color: var(--main-red);
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        /* --- PLAYER FIXE (Haut de l'écran) --- */
+        .player-wrapper {
             width: 100%;
-            box-sizing: border-box;
+            background: #000;
+            position: sticky; top: 0; z-index: 900;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            aspect-ratio: 16 / 9;
         }
 
-        /* --- LECTEUR TV --- */
-        .video-section {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #30363d;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        video { width: 100%; height: 100%; object-fit: contain; }
+
+        /* --- CONTAINER DES CHAINES --- */
+        .main-content { padding: 20px; margin-top: 10px; }
+
+        h2 { 
+            font-size: 1.2rem; margin-bottom: 15px; font-weight: 500; 
+            display: flex; align-items: center; gap: 10px;
         }
 
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%; /* Ratio 16:9 */
-            height: 0;
-            background-color: black;
-        }
-
-        video {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-        }
-
-        .video-info {
-            padding: 15px;
-        }
-
-        .video-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .video-subtitle {
-            font-size: 12px;
-            color: var(--text-sub);
-        }
-
-        .live-tag {
-            background-color: #da3633;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
-            margin-right: 5px;
-        }
-
-        /* --- SECTION RADIO --- */
-        .radio-section {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #30363d;
-        }
-
-        .radio-section h2 {
-            font-size: 16px;
-            margin-top: 0;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .station-list {
+        /* --- GRILLE MODERNE --- */
+        .channels-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 15px;
+            margin-bottom: 40px;
         }
 
-        .station-card {
-            background-color: #21262d;
-            border-radius: 8px;
-            padding: 15px;
+        .channel-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px 10px;
             text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
             border: 1px solid transparent;
-            cursor: pointer;
-            transition: 0.2s;
+            position: relative;
         }
 
-        .station-card:hover, .station-card.active {
-            border-color: var(--accent-color);
-            background-color: #2a3039;
+        .channel-card:hover {
+            transform: translateY(-5px);
+            background: #2a2a2a;
+            border-color: var(--main-red);
         }
 
-        .station-icon {
-            font-size: 30px;
-            margin-bottom: 10px;
+        .channel-card.active {
+            border-color: var(--accent-blue);
+            background: #252525;
         }
 
-        .station-name {
-            font-size: 14px;
-            font-weight: 500;
+        .channel-card i {
+            font-size: 30px; margin-bottom: 10px; color: var(--accent-blue);
         }
 
-        /* --- LECTEUR AUDIO CACHÉ --- */
-        audio { display: none; }
-
-        /* --- BAS DE PAGE (NAVIAGTION FIXE) --- */
-        footer {
-            background-color: var(--card-bg);
-            border-top: 1px solid #30363d;
-            padding: 10px;
-            position: sticky;
-            bottom: 0;
-            display: flex;
-            justify-content: space-around;
-            box-shadow: 0 -4px 6px rgba(0,0,0,0.3);
+        .channel-card img {
+            width: 50px; height: 50px; object-fit: contain; margin-bottom: 10px;
         }
 
-        .nav-btn {
-            background: none;
-            border: none;
-            color: var(--text-sub);
-            font-size: 11px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
+        .channel-name {
+            font-size: 0.8rem; font-weight: bold;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        .nav-btn.active {
-            color: var(--primary-color);
+        /* --- BARRE DE NAVIGATION BASSE --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around;
+            padding: 12px 0; border-top: 1px solid #333;
+            z-index: 1001;
         }
 
-        .nav-icon {
-            font-size: 20px;
+        .nav-item {
+            color: #888; text-decoration: none; font-size: 0.7rem;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            cursor: pointer; transition: 0.3s;
         }
 
-        /* Responsive : Ajustements pour PC */
-        @media (min-width: 600px) {
-            header h1 { font-size: 24px; }
-            .station-list { grid-template-columns: repeat(3, 1fr); }
-        }
+        .nav-item.active { color: var(--main-red); }
+        .nav-item i { font-size: 1.2rem; }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .channels-grid { animation: fadeIn 0.5s ease-in; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Lushi Stream ⚡</h1>
-    </header>
-
-    <div class="container" id="main-container">
-        
-        <div id="tv-section" class="content-section">
-            <div class="video-section">
-                <div class="video-wrapper">
-                    <video id="tvPlayer" controls autoplay playsinline poster="https://static.france24.com/live/F24_FR_HI_HLS/thumbnail.jpg"></video>
-                </div>
-                <div class="video-info">
-                    <div class="video-title">
-                        <span class="live-tag">DIRECT</span> France 24 Infos
-                    </div>
-                    <div class="video-subtitle">Qualité : Auto (HLS) | Lubumbashi Relais</div>
-                </div>
-            </div>
-        </div>
-
-        <div id="radio-section" class="content-section" style="display: none;">
-            <div class="radio-section">
-                <h2>📻 Stations Disponibles</h2>
-                <div class="station-list">
-                    <div class="station-card" onclick="playRadio('https://rfi-afrique-64k.akacast.akamaistream.net/7/463/144103/v1/rc.akacast.akamaistream.net/rfi_afrique_64k', this)">
-                        <div class="station-icon">🌍</div>
-                        <div class="station-name">RFI Afrique</div>
-                    </div>
-                    <div class="station-card" onclick="playRadio('https://bbc-bbcws-afrique.akacast.akamaistream.net/7/24/144101/v1/rc.akacast.akamaistream.net/bbc_bbcws_afrique', this)">
-                        <div class="station-icon">🎙️</div>
-                        <div class="station-name">BBC Afrique</div>
-                    </div>
-                    <div class="station-card" onclick="playRadio('http://icecast.rtl.fr/rtl-1-44-128?listen=webkey', this)">
-                        <div class="station-icon">🎵</div>
-                        <div class="station-name">RTL France</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <div class="player-wrapper">
+        <video id="videoPlayer" controls autoplay playsinline poster="https://static.france24.com/live/F24_FR_HI_HLS/thumbnail.jpg"></video>
+        <audio id="audioPlayer" style="display:none"></audio>
     </div>
 
-    <audio id="audioPlayer"></audio>
+    <div class="main-content">
+        <h2 id="cat-title"><i class="fas fa-tv"></i> Télévision en Direct</h2>
+        <div class="channels-grid" id="grid">
+            </div>
+    </div>
 
-    <footer>
-        <button class="nav-btn active" onclick="showSection('tv')" id="nav-tv">
-            <span class="nav-icon">📺</span>
-            <span>TV en Direct</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('radio')" id="nav-radio">
-            <span class="nav-icon">📻</span>
-            <span>Radio FM</span>
-        </button>
-    </footer>
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="changeTab('tv', this)">
+            <i class="fas fa-desktop"></i>
+            <span>TV</span>
+        </div>
+        <div class="nav-item" onclick="changeTab('radio', this)">
+            <i class="fas fa-broadcast-tower"></i>
+            <span>RADIO</span>
+        </div>
+        <div class="nav-item" onclick="window.location.reload()">
+            <i class="fas fa-sync-alt"></i>
+            <span>RECHARGER</span>
+        </div>
+    </nav>
 
     <script>
-        const tvPlayer = document.getElementById('tvPlayer');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const tvSection = document.getElementById('tv-section');
-        const radioSection = document.getElementById('radio-section');
-        const navTv = document.getElementById('nav-tv');
-        const navRadio = document.getElementById('nav-radio');
+        // --- BASE DE DONNÉES DES CHAÎNES (À compléter jusqu'à 50) ---
+        const channels = {
+            tv: [
+                { name: "France 24", url: "https://static.france24.com/live/F24_FR_HI_HLS/live_tv.m3u8", img: "https://upload.wikimedia.org/wikipedia/commons/e/e9/France_24_logo.svg" },
+                { name: "Africa 24", url: "https://live.africa24tv.com/africa24/smil:africa24.smil/playlist.m3u8", img: "https://www.africa24tv.com/images/logo.png" },
+                { name: "Euronews", url: "https://euronews-euronews-french-p6-vpod.pdt.ovh/200/index.m3u8", img: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Euronews_logo_2016.svg" },
+                { name: "TV5 Monde", url: "https://ott.tv5monde.com/content/vtv/tv5monde_afrique/index.m3u8", img: "https://upload.wikimedia.org/wikipedia/commons/4/4b/TV5MONDE_logo.svg" },
+                // Ajoute tes autres liens TV ici
+            ],
+            radio: [
+                { name: "RFI Afrique", url: "https://rfi-afrique-64k.akacast.akamaistream.net/7/463/144103/v1/rc.akacast.akamaistream.net/rfi_afrique_64k", icon: "fa-earth-africa" },
+                { name: "BBC Afrique", url: "https://bbc-bbcws-afrique.akacast.akamaistream.net/7/24/144101/v1/rc.akacast.akamaistream.net/bbc_bbcws_afrique", icon: "fa-microphone-alt" },
+                { name: "Radio Lushi FM", url: "https://stream.radio.co/s6f1b3f9d5/listen", icon: "fa-headphones" },
+                // Ajoute tes autres liens Radio ici
+            ]
+        };
 
-        // URL du flux TV (France 24)
-        const tvUrl = "https://static.france24.com/live/F24_FR_HI_HLS/live_tv.m3u8";
+        const video = document.getElementById('videoPlayer');
+        const audio = document.getElementById('audioPlayer');
+        const grid = document.getElementById('grid');
+        let hls = new Hls();
 
-        // --- 1. Initialisation du Lecteur TV (HLS) ---
-        function initTv() {
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(tvUrl);
-                hls.attachMedia(tvPlayer);
-            } else if (tvPlayer.canPlayType('application/vnd.apple.mpegurl')) {
-                // Pour Safari
-                tvPlayer.src = tvUrl;
+        function renderChannels(type) {
+            grid.innerHTML = "";
+            document.getElementById('cat-title').innerHTML = type === 'tv' ? '<i class="fas fa-tv"></i> Télévision en Direct' : '<i class="fas fa-broadcast-tower"></i> Radios du Monde';
+            
+            channels[type].forEach(ch => {
+                const card = document.createElement('div');
+                card.className = 'channel-card';
+                if (type === 'tv') {
+                    card.innerHTML = `<img src="${ch.img}" alt="${ch.name}"><div class="channel-name">${ch.name}</div>`;
+                } else {
+                    card.innerHTML = `<i class="fas ${ch.icon}"></i><div class="channel-name">${ch.name}</div>`;
+                }
+                
+                card.onclick = () => playStream(ch.url, type, card);
+                grid.appendChild(card);
+            });
+        }
+
+        function playStream(url, type, element) {
+            // Effet visuel actif
+            document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+
+            if (type === 'tv') {
+                audio.pause();
+                if (Hls.isSupported()) {
+                    hls.destroy();
+                    hls = new Hls();
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                } else { video.src = url; }
+                video.play();
+            } else {
+                video.pause();
+                audio.src = url;
+                audio.play();
             }
         }
 
-        // --- 2. Gestionnaire Radio ---
-        function playRadio(url, card) {
-            // Arréter la TV
-            tvPlayer.pause();
-            
-            // Gestion visuelle de la carte active
-            document.querySelectorAll('.station-card').forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-            
-            // Lancer l'audio
-            audioPlayer.src = url;
-            audioPlayer.play();
+        function changeTab(type, el) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            renderChannels(type);
         }
 
-        // --- 3. Gestion de la Navigation ---
-        function showSection(section) {
-            // Cacher toutes les sections
-            tvSection.style.display = 'none';
-            radioSection.style.display = 'none';
-            navTv.classList.remove('active');
-            navRadio.classList.remove('active');
-
-            if (section === 'tv') {
-                tvSection.style.display = 'block';
-                navTv.classList.add('active');
-                audioPlayer.pause(); // Arrêter la radio si on passe à la TV
-            } else if (section === 'radio') {
-                radioSection.style.display = 'block';
-                navRadio.classList.add('active');
-                // On n'arrête pas la TV ici, elle se mettra en pause si on clique sur une radio
-            }
-        }
-
-        // Démarrer la TV au chargement
-        initTv();
+        // Démarrage par défaut
+        renderChannels('tv');
     </script>
-
 </body>
 </html>
